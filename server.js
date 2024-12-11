@@ -38,11 +38,10 @@ cloudinary.config({
 const upload = multer(); // no { storage: storage }
 
 const app = express();
+
 const HTTP_PORT = process.env.PORT || 8080;
 
-app.use(express.static('public'));
-
-app.set('view engine', 'ejs');
+app.use(express.static("public"));
 
 app.get("/", (req, res) => {
   res.redirect("/about");
@@ -52,26 +51,41 @@ app.get("/about", (req, res) => {
   res.sendFile(path.join(__dirname, "/views/about.html"));
 });
 
-app.get("/shop", (req, res) => {
+app.get("/store", (req, res) => {
   itemData
     .getPublishedItems()
     .then((data) => {
       res.json(data);
     })
     .catch((err) => {
-      res.status(500).json({ message: err });
+      res.json({ message: err });
     });
 });
 
 // Accept queryStrings
-app.get('/items', (req, res) => {
-  itemData.getAllItems()
-    .then((items) => {
-      res.render('itemsPage', { items: items });
+app.get('/items', (req,res)=>
+{
+
+    let queryPromise = null;
+
+    // check if there is a query for Category
+    if(req.query.category){
+        // get the data for category id only.
+        queryPromise = itemData.getItemsByCategory(req.query.category);
+    }else if(req.query.minDate){
+        // get the data for date only.
+        queryPromise = itemData.getItemsByMinDate(req.query.minDate);
+    }else{
+        // otherwise just get everything.
+        queryPromise = itemData.getAllItems()
+    } 
+
+    queryPromise.then(data=>{
+        res.json(data);
+    }).catch(err=>{
+        res.json({message: err});
     })
-    .catch((err) => {
-      res.status(500).send(err.message);
-    });
+
 });
 
 // A route for items/add

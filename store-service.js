@@ -61,10 +61,9 @@ module.exports.getAllItems = function(){
     });
 }
 
-module.exports.getPublishedItems = function() {
-    return new Promise((resolve, reject) => {
-        let publishedItems = items.filter(item => item.published);
-        publishedItems.length > 0 ? resolve(publishedItems) : reject("No published results returned");
+module.exports.getPublishedItems = function(){
+    return new Promise((resolve,reject)=>{
+        (items.length > 0) ? resolve(items.filter(item => items.published)) : reject("no results returned");
     });
 }
 
