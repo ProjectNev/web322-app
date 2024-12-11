@@ -8,11 +8,11 @@ distributed to other students. I acknoledge that violation of this policy
 to any degree results in a ZERO for this assignment and possible failure of
 the course. 
 
-Name:   
-Student ID:   
-Date:  
-Cyclic Web App URL:  
-GitHub Repository URL:  
+Name: Nevan Sargeant
+Student ID: 112175237
+Date: 12/11/2024
+Cyclic Web App URL: https://web322-bfb1tvyg4-projectnevs-projects.vercel.app (Doesnt work)
+GitHub Repository URL: https://github.com/ProjectNev/web322-app
 
 ********************************************************************************/
 
