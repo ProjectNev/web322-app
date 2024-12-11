@@ -1,72 +1,161 @@
-/*********************************************************************************
-WEB322 – Assignment 02
-I declare that this assignment is my own work in accordance with Seneca Academic Policy.
-No part of this assignment has been copied manually or electronically from any other source (including 3rd party web sites) or
-distributed to other students.
-Name: Nevan Sargeant
-Student ID: 112175237
-Date: 10/13/2024
-Vercel Web App URL: (Was told to leave it for the time being)
-GitHub Repository URL: https://github.com/ProjectNev/web322-app
+/********************************************************************************* 
+
+WEB322 – Assignment 03
+I declare that this assignment is my own work in accordance with Seneca
+Academic Policy.  No part of this assignment has been copied manually or 
+electronically from any other source (including 3rd party web sites) or 
+distributed to other students. I acknoledge that violation of this policy
+to any degree results in a ZERO for this assignment and possible failure of
+the course. 
+
+Name:   
+Student ID:   
+Date:  
+Cyclic Web App URL:  
+GitHub Repository URL:  
+
 ********************************************************************************/
 
-const express = require('express');
+const express = require("express");
+const itemData = require("./store-service");
 const path = require("path");
-const app = express();
-const storeService = require('./store-service');
 
+// 3 new modules, multer, cloudinary, streamifier
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
+
+// Configure Cloudinary. This API information is
+// inside of the Cloudinary Dashboard - https://console.cloudinary.com/
+cloudinary.config({
+  cloud_name: "",
+  api_key: "",
+  api_secret: "",
+  secure: true,
+});
+
+//  "upload" variable without any disk storage
+const upload = multer(); // no { storage: storage }
+
+const app = express();
 const HTTP_PORT = process.env.PORT || 8080;
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-app.get('/', (req, res) => {
-    res.redirect('/about');
+app.set('view engine', 'ejs');
+
+app.get("/", (req, res) => {
+  res.redirect("/about");
 });
 
-app.get('/about', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'about.html'));
+app.get("/about", (req, res) => {
+  res.sendFile(path.join(__dirname, "/views/about.html"));
 });
 
-app.get('/shop', (req, res) => {
-    storeService.getPublishedItems()
-      .then((publishedItems) => {
-        res.json(publishedItems); // Send the list of published items as JSON
-      })
-      .catch((err) => {
-        res.status(500).json({ message: err }); // Send error message in the format { message: 'error' }
-      });
+app.get("/shop", (req, res) => {
+  itemData
+    .getPublishedItems()
+    .then((data) => {
+      res.json(data);
+    })
+    .catch((err) => {
+      res.status(500).json({ message: err });
+    });
 });
 
+// Accept queryStrings
 app.get('/items', (req, res) => {
-    storeService.getAllItems()
-      .then((items) => {
-        res.json(items); // Send all items as JSON
-      })
-      .catch((err) => {
-        res.status(500).json({ message: err }); // Send error message in the format { message: 'error' }
-      });
+  itemData.getAllItems()
+    .then((items) => {
+      res.render('itemsPage', { items: items });
+    })
+    .catch((err) => {
+      res.status(500).send(err.message);
+    });
 });
 
-app.get('/categories', (req, res) => {
-    storeService.getCategories()
-      .then((categories) => {
-        res.json(categories); // Send all categories as JSON
+// A route for items/add
+app.get("/items/add", (req, res) => {
+  res.sendFile(path.join(__dirname, "/views/addItem.html"));
+});
+
+app.post("/items/add", upload.single("featureImage"), (req, res) => {
+  if (req.file) {
+    let streamUpload = (req) => {
+      return new Promise((resolve, reject) => {
+        let stream = cloudinary.uploader.upload_stream((error, result) => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(error);
+          }
+        });
+
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+    };
+
+    async function upload(req) {
+      let result = await streamUpload(req);
+
+      console.log(result);
+
+      return result;
+    }
+
+    upload(req).then((uploaded) => {
+      processItem(uploaded.url);
+    });
+  } else {
+    processItem("");
+  }
+
+  function processItem(imageUrl) {
+    req.body.featureImage = imageUrl;
+
+    // TODO: Process the req.body and add it as a new Item before redirecting to /items
+    itemData
+      .addItem(req.body)
+      .then((post) => {
+        res.redirect("/items");
       })
       .catch((err) => {
-        res.status(500).json({ message: err }); // Send error message in the format { message: 'error' }
+        res.status(500).send(err);
       });
+  }
+});
+
+// Get an individual item
+app.get('/item/:id', (req,res)=>{
+    itemData.getItemById(req.params.id).then(data=>{
+        res.json(data);
+    }).catch(err=>{
+        res.json({message: err});
+    });
+});
+
+app.get("/categories", (req, res) => {
+    itemData
+    .getCategories()
+    .then((data) => {
+      res.json(data);
+    })
+    .catch((err) => {
+      res.json({ message: err });
+    });
 });
 
 app.use((req, res) => {
-    res.status(404).send('Page Not Found');
+  res.status(404).send("404 - Page Not Found");
 });
 
-storeService.initialize()
+itemData
+  .initialize()
   .then(() => {
     app.listen(HTTP_PORT, () => {
-      console.log(`Express http server listening on port ${HTTP_PORT}`);
+      console.log("server listening on: " + HTTP_PORT);
     });
   })
   .catch((err) => {
-    console.error('Failed to initialize data:', err);
-});
+    console.log(err);
+  });
