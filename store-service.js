@@ -1,21 +1,3 @@
-/********************************************************************************* 
-
-WEB322 – Assignment 03
-I declare that this assignment is my own work in accordance with Seneca
-Academic Policy.  No part of this assignment has been copied manually or 
-electronically from any other source (including 3rd party web sites) or 
-distributed to other students. I acknoledge that violation of this policy
-to any degree results in a ZERO for this assignment and possible failure of
-the course. 
-
-Name:   
-Student ID:   
-Date:  
-Cyclic Web App URL:  
-GitHub Repository URL:  
-
-********************************************************************************/  
-
 const fs = require("fs");
 
 let items = [];
@@ -62,10 +44,16 @@ module.exports.getAllItems = function(){
 }
 
 module.exports.getPublishedItems = function(){
-    return new Promise((resolve,reject)=>{
-        (items.length > 0) ? resolve(items.filter(item => items.published)) : reject("no results returned");
+    return new Promise((resolve, reject) => {
+        let publishedItems = items.filter(item => item.published);  // Corrected filter condition
+        if (publishedItems.length > 0) {
+            resolve(publishedItems);
+        } else {
+            reject("no results returned");
+        }
     });
 }
+
 
 module.exports.getCategories = function(){
     return new Promise((resolve,reject)=>{
@@ -75,16 +63,9 @@ module.exports.getCategories = function(){
 
 module.exports.addItem = function(itemData){
     return new Promise((resolve,reject)=>{
-        // check if published is true or not. 
         itemData.published = itemData.published ? true : false;
-
-        // increase the Id by 1, for our 'index'
         itemData.id = items.length + 1;
-
-        // push the item to the dataStore
         items.push(itemData);
-
-        // resolve the promise
         resolve();
     });
 }

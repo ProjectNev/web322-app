@@ -19,14 +19,11 @@ GitHub Repository URL:
 const express = require("express");
 const itemData = require("./store-service");
 const path = require("path");
-
-// 3 new modules, multer, cloudinary, streamifier
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 
-// Configure Cloudinary. This API information is
-// inside of the Cloudinary Dashboard - https://console.cloudinary.com/
+
 cloudinary.config({
   cloud_name: "",
   api_key: "",
@@ -34,11 +31,8 @@ cloudinary.config({
   secure: true,
 });
 
-//  "upload" variable without any disk storage
 const upload = multer(); // no { storage: storage }
-
 const app = express();
-
 const HTTP_PORT = process.env.PORT || 8080;
 
 app.use(express.static("public"));
@@ -51,44 +45,33 @@ app.get("/about", (req, res) => {
   res.sendFile(path.join(__dirname, "/views/about.html"));
 });
 
-app.get("/store", (req, res) => {
-  itemData
-    .getPublishedItems()
-    .then((data) => {
+app.get("/shop", (req, res) => {
+  itemData.getPublishedItems()
+    .then(data => {
       res.json(data);
     })
-    .catch((err) => {
-      res.json({ message: err });
+    .catch(err => {
+      res.status(500).json({ message: err.message });
     });
 });
 
-// Accept queryStrings
 app.get('/items', (req,res)=>
 {
-
     let queryPromise = null;
-
-    // check if there is a query for Category
     if(req.query.category){
-        // get the data for category id only.
         queryPromise = itemData.getItemsByCategory(req.query.category);
     }else if(req.query.minDate){
-        // get the data for date only.
         queryPromise = itemData.getItemsByMinDate(req.query.minDate);
     }else{
-        // otherwise just get everything.
         queryPromise = itemData.getAllItems()
     } 
-
     queryPromise.then(data=>{
         res.json(data);
     }).catch(err=>{
         res.json({message: err});
     })
-
 });
 
-// A route for items/add
 app.get("/items/add", (req, res) => {
   res.sendFile(path.join(__dirname, "/views/addItem.html"));
 });
@@ -104,19 +87,15 @@ app.post("/items/add", upload.single("featureImage"), (req, res) => {
             reject(error);
           }
         });
-
         streamifier.createReadStream(req.file.buffer).pipe(stream);
       });
     };
 
     async function upload(req) {
       let result = await streamUpload(req);
-
       console.log(result);
-
       return result;
     }
-
     upload(req).then((uploaded) => {
       processItem(uploaded.url);
     });
@@ -127,7 +106,6 @@ app.post("/items/add", upload.single("featureImage"), (req, res) => {
   function processItem(imageUrl) {
     req.body.featureImage = imageUrl;
 
-    // TODO: Process the req.body and add it as a new Item before redirecting to /items
     itemData
       .addItem(req.body)
       .then((post) => {
@@ -139,7 +117,6 @@ app.post("/items/add", upload.single("featureImage"), (req, res) => {
   }
 });
 
-// Get an individual item
 app.get('/item/:id', (req,res)=>{
     itemData.getItemById(req.params.id).then(data=>{
         res.json(data);
@@ -167,7 +144,7 @@ itemData
   .initialize()
   .then(() => {
     app.listen(HTTP_PORT, () => {
-      console.log("server listening on: " + HTTP_PORT);
+      console.log("Server listening/running on: " + HTTP_PORT);
     });
   })
   .catch((err) => {
