@@ -62,13 +62,19 @@ module.exports.getCategories = function(){
 }
 
 module.exports.addItem = function(itemData){
-    return new Promise((resolve,reject)=>{
-        itemData.published = itemData.published ? true : false;
-        itemData.id = items.length + 1;
-        items.push(itemData);
-        resolve();
+    return new Promise((resolve, reject) => {
+        itemData.published = itemData.published ? true : false; // Ensure published field is set
+        itemData.id = items.length + 1; // Assign a new ID
+        
+        // Set the current date in YYYY-MM-DD format
+        const currentDate = new Date();
+        const formattedDate = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')}`;
+        itemData.postDate = formattedDate; // Adding the date to the item data
+        
+        items.push(itemData); // Add the new item to the items array
+        resolve(itemData); // Resolve the promise with the new item
     });
-}
+};
 
 module.exports.getItemsByCategory = function(category){
     return new Promise((resolve,reject)=>{
@@ -93,3 +99,14 @@ module.exports.getItemsByMinDate = function(minDateStr) {
         }
     });
 }
+
+module.exports.getPublishedItemsByCategory = function(category) {
+    return new Promise((resolve, reject) => {
+        let filteredItems = items.filter(item => item.published && item.category == category);
+        if (filteredItems.length > 0) {
+            resolve(filteredItems);
+        } else {
+            reject("No published items found in this category");
+        }
+    });
+};
