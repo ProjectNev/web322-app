@@ -11,7 +11,7 @@ the course.
 Name: Nevan Sargeant
 Student ID: 112175237
 Date: 12/11/2024
-Cyclic Web App URL: https://web322-bfb1tvyg4-projectnevs-projects.vercel.app (Doesn't work)
+Cyclic Web App URL: https://web322-bfb1tvyg4-projectnevs-projects.vercel.app (Doesn't work still...)
 GitHub Repository URL: https://github.com/ProjectNev/web322-app
 
 ********************************************************************************/
